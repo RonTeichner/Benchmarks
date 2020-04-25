@@ -1,0 +1,218 @@
+\documentclass{beamer}
+%\beamerdefaultoverlayspecification{<+->}
+%\documentclass[unknownkeysallowed]{beamer}
+
+\usepackage[british]{babel}
+\usepackage{graphicx,hyperref,ru,url}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{bibentry}
+
+\usepackage{xcolor,cancel}
+
+\newcommand\hcancel[2][black]{\setbox0=\hbox{$#2$}%
+\rlap{\raisebox{.45\ht0}{\textcolor{#1}{\rule{\wd0}{1pt}}}}#2} 
+%\graphicspath{{"/Users/Guy/Dropbox (MLGroup)/phd/candidacy presentation/img"}}
+
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\h}{\mathcal{H}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\oo}{\mathcal{O}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\K}{\mathcal{K}}
+\newcommand{\s}{\mathcal{S}}
+\newcommand{\p}{\mathcal{P}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Z}{\mathcal{Z}}
+\newcommand{\U}{\mathcal{U}}
+
+\newcommand{\argmax}[1]{\mathop{\mathrm{argmax}}\limits_{#1} }
+\newcommand{\argmin}[1]{\mathop{\mathrm{argmin}}\limits_{#1}}
+\newcommand{\pth}[1]{\left( #1 \right) }
+\newcommand{\bpth}[1]{\left[ #1 \right] }
+\newcommand{\abs}[1]{{\left| #1 \right| }}
+\newcommand{\braces}[1]{\left\{ #1 \right\} }
+\newcommand{\cmnt}[1]{\ignorespaces}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\Emb}[1]{\mathcal{E}\pth{#1}}
+\newcommand{\indicator}[1]{\mathbbm{1}_{\braces{#1}}}
+\newcommand\given[1][]{\:#1\vert\:}
+\newcommand{\expo}[1]{\text{exp}\braces{ #1 }}
+\newcommand{\pearldo}[1]{\mathbf{do}\pth{#1}}
+
+\newcommand{\pie}[2]{\pi_e^{(#1)}(#2)}
+\newcommand{\pib}[2]{\pi_b^{(#1)}(#2)}
+\newtheorem{Conjecture}{Conjecture}
+
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+% The title of the presentation:
+%  - first a short version which is visible at the bottom of each slide;
+%  - second the full title shown on the title slide;
+\title[Incorporating conditional mutual-information of treatment-outcome in estimating individual treatment effect]{
+  Incorporating treatment-outcome conditional mutual-information in estimating individual treatment effect}
+
+% Optional: a subtitle to be dispalyed on the title slide
+%\subtitle{A bridge between
+%model-based and data-driven\\
+%algorithms in health-care}
+
+% The author(s) of the presentation:
+%  - again first a short version to be displayed at the bottom;
+%  - next the full list of authors, which may include contact information;
+\author[Ron Teichner]{
+  Ron Teichner}% \\\medskip
+  %{\small \url{guytenn@gmail.com}}}
+
+% The institute:
+%  - to start the name of the university as displayed on the top of each slide
+%    this can be adjusted such that you can also create a Dutch version
+%  - next the institute information as displayed on the title slide
+%
+\institute[$(\text{RL})^\mathbf{2}$]{
+%\institute[]{
+  097400 - Introduction to causal inference\\Final project}
+
+%\vspace*{+6\baselineskip}
+%\hspace*{-2.2cm}\hspace{-2cm}
+%\titlegraphic{\vspace{-1.3cm}\includegraphics[width=10cm,height=3cm]{output-onlinepngto%ols}}
+
+
+
+% Add a date and possibly the name of the event to the slides
+%  - again first a short version to be shown at the bottom of each slide
+%  - second the full date and event name for the title slide
+\date[January 2020]{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+%width=10cm,height=10cm
+
+% Section titles are shown in at the top of the slides with the current section 
+% highlighted. Note that the number of sections determines the size of the top 
+% bar, and hence the university name and logo. If you do not add any sections 
+% they will not be visible.
+
+\begin{frame}{Project's objective}
+    \begin{itemize}
+        \item<1-> Estimating ITE based on observational data\\
+        (assumptions and notations as in \cite{pmlr-v70-shalit17a})
+        \item<2-> Learn a model $\hat{y} \sim p_\theta(\hat{y} \mid t,x)$
+        \item<3-> Prediction errors might arise in regions where $\{x,t\}$ is sparse
+        \item<4-> Resulting in ITE estimating errors
+        \item<5-> \cite{pmlr-v70-shalit17a} introduce a representation function $\Phi: X \rightarrow R$ and a balancing-regulation loss
+        \item<6-| alert@6> We suggest the conditional mutual-information $I(\hat{Y},T \mid X)$ as an alternative regulation 
+    \end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Loss function}
+    The loss function incorporates negative log-likelihood and mutual-information:
+    \begin{equation}\label{eq:loss}
+        L = L_o(\hat{y}, y) - \gamma I(\hat{y};t \mid X)
+    \end{equation}
+    The mutual-information:
+    \begin{equation}\label{eq:mi}
+        \begin{split}
+            &I(\hat{y};t \mid X) = H(\hat{y} \mid X) - H(\hat{y} \mid t,X)\\
+            %
+            &= \operatorname{E}_{x,t \sim p_{data}(x,t)} \operatorname{E}_{\hat{y} \sim p_\theta(\hat{y} \mid x,t)} \left[ \operatorname{log} p_\theta(\hat{y} \mid t,x) \right]\\
+            &-\operatorname{E}_{x \sim p_{data}(x)} \operatorname{E}_{t \sim p_{data}(t)} \operatorname{E}_{\hat{y} \sim p_\theta(\hat{y} \mid x,t)} \left[ \operatorname{log} \sum_t p_\theta(\hat{y} \mid x, t)p(t) \right]\\
+        \end{split}
+    \end{equation}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Intuition and drawbacks}
+    \begin{itemize}
+        \item<1-> Prediction error in $y$:
+            \begin{itemize}
+                \item<2-> The model ignores $t$: \textcolor{blue}{The Loss $L_o$ is amplified by the low value of $I(\hat{y};t \mid X)$}
+                \item<3-> \textcolor{red}{$I(\hat{y};t \mid X)$ has a high value that masks a high value of $L_o$}
+            \end{itemize}
+        \item<4-> Correct prediction of $y$:
+            \begin{itemize}
+                \item Although the Neural-Net correctly predicts $y$ it is motivated in increasing $I$ which will result in wrong-prediction. \textcolor{red}{To avoid this we need $L_o$ to rise quicker than $I(\hat{y};t \mid X)$}.
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Preliminary results}
+    Consider the next example:
+    \begin{center}
+     \begin{tabular}{||c | c | c | c | c||}
+     \hline
+     Idx & x & t & y & nRepetitions \\ [0.5ex] 
+     \hline\hline
+     1 & 0 & 1 & 1 & 3 \\ 
+     \hline
+     2 & 1 & 1 & 0 & 3 \\
+     \hline
+     3 & 0 & 0 & 0 & 3 \\
+     \hline
+     4 & 1 & 0 & 1 & 1 \\ [1ex] 
+     \hline
+    \end{tabular}
+    \end{center}
+    %
+    \uncover<2->{We set $p_\theta(\hat{y} \mid t,x)$ as a Bernoulli distribution and we choose a model with parameters $\{a,b_x\}$:
+    \begin{equation}
+        \begin{split}
+            &p_\theta(\hat{y} \mid t,x) = \theta\hat{y} + (1-\theta)(1-\hat{y})\\
+            %
+            &\theta = \sigma(a+\operatorname{ReLU}(f_{b_x}(x,t)) + \operatorname{ReLU}(g_{b_x}(x,t)))\\
+        \end{split}
+    \end{equation}}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Preliminary results}
+Model predictions:
+    \begin{center}
+     \begin{tabular}{||c | c | c | c | c | c ||}
+     \hline
+     Idx & x & t & y & $p_\theta(\hat{y}=1 \mid x,t); \gamma=0$ & $p_\theta(\hat{y}=1 \mid x,t); \gamma=0.55$ \\ [0.5ex] 
+     \hline\hline
+     1 & 0 & 1 & 1 & 0.9499 & 0.8656 \\ 
+     \hline
+     2 & 1 & 1 & 0 & 0.1391 & 0.1715 \\
+     \hline
+     3 & 0 & 0 & 0 & 0.1391 & 0.1715 \\
+     \hline
+     4 & 1 & 0 & 1 & 0.3155 & 0.4692 \\ [1ex] 
+     \hline
+    \end{tabular}
+    \end{center}
+ITE errors:
+    \begin{center}
+     \begin{tabular}{||c | c | c | c | c ||}
+     \hline
+     x & ITE(x=0) error; $\gamma=0$ & ITE(x=1) error; $\gamma=0.55$ \\ [0.5ex] 
+     \hline\hline
+     0 & 19\% & 30\% \\ 
+     \hline
+     1 & 82\% & 70\% \\ [1ex] 
+     \hline
+    \end{tabular}
+    \end{center}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Project goals}
+    \begin{itemize}
+        \item Develop a theoretical basis for the suggested approach \textbf{(enabling or disabling)}
+        \item On a nominal dataset identify inputs $x$ for which the model ignores $t$
+        \item Run the proposed method and analyze the obtained results
+    \end{itemize}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[t,allowframebreaks]
+\frametitle{References}
+\bibliographystyle{apalike}
+\bibliography{references.bib}
+\end{frame}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+\end{document}
